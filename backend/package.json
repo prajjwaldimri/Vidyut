@@ -1,0 +1,18 @@
+{
+  "name": "viduyt-backend",
+  "version": "0.1.0",
+  "description": "Backend for vidyut blockchain",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --project ./",
+    "dev": "ts-node-dev --respawn --transpile-only --debug index.ts"
+  },
+  "author": "",
+  "license": "GPLv3",
+  "devDependencies": {
+    "@types/node": "^14.14.20",
+    "ts-node": "^9.1.1",
+    "ts-node-dev": "^1.1.1",
+    "typescript": "^4.1.3"
+  }
+}
