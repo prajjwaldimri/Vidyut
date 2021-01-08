@@ -1,14 +1,13 @@
 import swarm from "discovery-swarm";
+import getPort from "get-port";
 
-let sw = swarm();
-sw.listen(55555);
-sw.join("Vidyut");
+(async () => {
+  let sw = swarm();
+  sw.listen(await getPort({ port: getPort.makeRange(30000, 50000) }));
+  sw.join("Vidyut");
 
-sw.on("connection", (connection) => {
-  console.log("found");
-  console.log("connection");
-});
-
-sw.on("peer", (peer) => {
-  console.log(peer);
-});
+  sw.on("connection", (connection) => {
+    console.log("found");
+    console.log(sw.connected);
+  });
+})();

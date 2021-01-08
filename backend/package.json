@@ -16,6 +16,8 @@
     "typescript": "^4.1.3"
   },
   "dependencies": {
-    "discovery-swarm": "^6.1.0"
+    "@types/get-port": "^4.2.0",
+    "discovery-swarm": "^6.1.0",
+    "get-port": "^5.1.1"
   }
 }

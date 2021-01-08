@@ -31,7 +31,7 @@ class BlockBodyContract {
 
 class BlockBodyReputation {
   constructor(
-    public change: Number,
+    public change: number,
     public peer: string,
     public contract: string,
     public isNegative: boolean
