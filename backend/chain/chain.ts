@@ -1,7 +1,7 @@
 import { Block } from "../block";
 import Validator from "./validator";
 
-class Chain {
+export default class Chain {
   public blocks: Block[];
   public validators: Validator[];
   private index: number;
