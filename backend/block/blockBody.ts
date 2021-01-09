@@ -1,9 +1,11 @@
+import { nanoid } from "nanoid";
+
 enum BlockBodyType {
   REPUTATION = "REPUTATION",
   CONTRACT = "CONTRACT",
 }
 
-export default class BlockBody {
+class BlockBody {
   public type: BlockBodyType;
   public contract?: BlockBodyContract;
   public reputation?: BlockBodyReputation;
@@ -20,13 +22,16 @@ export default class BlockBody {
 }
 
 class BlockBodyContract {
+  public id: string;
+
   constructor(
     public producer: string,
     public consumer: string,
-    public id: string,
-    public amount: Number,
+    public amount: number,
     public fulfilled: boolean
-  ) {}
+  ) {
+    this.id = nanoid();
+  }
 }
 
 class BlockBodyReputation {
@@ -37,3 +42,5 @@ class BlockBodyReputation {
     public isNegative: boolean
   ) {}
 }
+
+export { BlockBody, BlockBodyContract, BlockBodyReputation };

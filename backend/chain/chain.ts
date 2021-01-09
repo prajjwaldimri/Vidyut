@@ -14,16 +14,14 @@ export default class Chain {
 
   isBlockValid(block: Block): boolean {
     // Check if the validator is present on the chain or not
-    let isValidatorOnChain = false;
-    let validator: Validator = null;
+    let validator: Validator | undefined = undefined;
     for (const currentValidator of this.validators) {
       if (currentValidator.address === block.validator) {
-        isValidatorOnChain = true;
         validator = currentValidator;
       }
     }
 
-    if (!isValidatorOnChain) return false;
+    if (!validator) return false;
 
     // Check if the validator has a positive reputation
     if (validator.reputation <= 0) {
