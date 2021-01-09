@@ -1,6 +1,5 @@
 import swarm from "discovery-swarm";
 import getPort from "get-port";
-import { Wallet } from "./wallet";
 
 let swarmConnect = async () => {
   let sw = swarm();
@@ -12,7 +11,3 @@ let swarmConnect = async () => {
     console.log(sw.connected);
   });
 };
-
-const wallet = new Wallet();
-
-console.log(wallet);
