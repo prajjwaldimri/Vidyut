@@ -46,7 +46,6 @@ app.get("/", (req, res) => {
   console.log(`Listening on ${port}`);
   swarm.join(channel, { announce: true });
   swarm.on('connection', (conn, info) => {
-    console.log(conn);
     console.log(info);
     const seq = connSeq;
     const peerId = info.id.toString('hex');
