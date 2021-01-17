@@ -1,5 +1,8 @@
-import swarm from "discovery-swarm";
-import getPort from "get-port";
+
+import wrtc from "wrtc";
+import fetch from "node-fetch";
+import WebSocket from "ws";
+import SimplePeerJs from "simple-peerjs";
 
 import express from "express";
 import cors from "cors";
@@ -13,16 +16,19 @@ app.get("/", (req, res) => {
 });
 
 (async () => {
-  let sw = swarm();
-  sw.listen(await getPort({ port: getPort.makeRange(30000, 50000) }));
-  sw.join("Vidyut");
+  const peer = new SimplePeerJs({ id: "Vidyut-Initiator", wrtc, fetch, WebSocket });
 
-  sw.on("connection", (connection) => {
-    console.log("found");
-    console.log(sw.connected);
+  peer.on('connect', conn => {
+    console.log('Peer connected:', conn.peerId);
+
+    conn.peer.on('data', data => {
+      console.log(data.toString());
+    });
   });
+
 
   app.listen(3333, () => {
     console.log("Express listening at 3333");
   });
 })();
+
