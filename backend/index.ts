@@ -1,9 +1,3 @@
-
-// import wrtc from "wrtc";
-// import fetch from "node-fetch";
-// import WebSocket from "ws";
-// import SimplePeerJs from "simple-peerjs";
-
 import Swarm from 'discovery-swarm';
 import defaults from 'dat-swarm-defaults';
 import crypto from 'crypto';
