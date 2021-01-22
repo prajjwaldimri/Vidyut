@@ -11,9 +11,9 @@ import { MessageHandler, MessageType } from "./messageHandler";
   let connSeq = 0;
   let channel = 'Vidyut';
 
-  const myPeerId = crypto.randomBytes(32).toString('hex');
+  const myPeerId = crypto.randomBytes(32);
 
-  const messageHandler = new MessageHandler(peers, myPeerId);
+  const messageHandler = new MessageHandler(peers, myPeerId.toString('hex'));
 
   const config = defaults({ id: myPeerId });
   const swarm = Swarm(config);
@@ -38,6 +38,8 @@ import { MessageHandler, MessageType } from "./messageHandler";
       connSeq++;
     }
 
+    messageHandler.broadcast(MessageType.BLOCK, "Testing");
+
     conn.on('data', (data) => {
       let message = JSON.parse(data);
       console.log(message);
@@ -45,7 +47,7 @@ import { MessageHandler, MessageType } from "./messageHandler";
 
     conn.on('close', () => {
       console.log(`Connection ${seq} closed`);
-      if (peers[peerId].seq === seq) {
+      if (peers[peerId] && peers[peerId].seq === seq) {
         delete peers[peerId];
       }
     });

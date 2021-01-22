@@ -4,11 +4,13 @@ export enum MessageType {
 
 export class MessageHandler {
 
-  constructor(private peers, private myId: string) { }
+  constructor(public peers, private myId: string) {
+
+  }
 
   broadcast(type: MessageType, data: string) {
     for (let id in this.peers) {
-      this.sendMessageToPeer(this.myId, type, data);
+      this.sendMessageToPeer(id, type, data);
     }
   }
   sendMessageToPeer(toId: string, type: MessageType, data: string) {
