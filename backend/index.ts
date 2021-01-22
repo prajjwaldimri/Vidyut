@@ -1,36 +1,19 @@
 import Swarm from 'discovery-swarm';
 import defaults from 'dat-swarm-defaults';
 import crypto from 'crypto';
-
-import express from "express";
-import cors from "cors";
 import getPort from 'get-port';
-const app = express();
 
-app.use(cors());
-
-
-app.get("/", (req, res) => {
-  res.send("Hello");
-});
+import { MessageHandler, MessageType } from "./messageHandler";
 
 (async () => {
-  // const peer = new SimplePeerJs({ id: "Vidyut-Initiator", wrtc, fetch, WebSocket });
-
-  // peer.on('connect', conn => {
-  //   console.log('Peer connected:', conn.peerId);
-
-  //   conn.peer.on('data', data => {
-  //     console.log(data.toString());
-  //   });
-  // });
 
   const peers = {};
   let connSeq = 0;
   let channel = 'Vidyut';
 
-  const myPeerId = crypto.randomBytes(32);
-  console.log('MyPeerId: ' + myPeerId.toString('hex'));
+  const myPeerId = crypto.randomBytes(32).toString('hex');
+
+  const messageHandler = new MessageHandler(peers, myPeerId);
 
   const config = defaults({ id: myPeerId });
   const swarm = Swarm(config);
@@ -40,7 +23,6 @@ app.get("/", (req, res) => {
   console.log(`Listening on ${port}`);
   swarm.join(channel, { announce: true });
   swarm.on('connection', (conn, info) => {
-    console.log(info);
     const seq = connSeq;
     const peerId = info.id.toString('hex');
     if (info.initiator) {
@@ -51,9 +33,23 @@ app.get("/", (req, res) => {
       }
     }
 
+    if (!peers[peerId]) {
+      peers[peerId] = { conn, seq };
+      connSeq++;
+    }
+
+    conn.on('data', (data) => {
+      let message = JSON.parse(data);
+      console.log(message);
+    });
+
     conn.on('close', () => {
       console.log(`Connection ${seq} closed`);
+      if (peers[peerId].seq === seq) {
+        delete peers[peerId];
+      }
     });
+
   });
 
   swarm.on("peer-banned", () => {
@@ -64,9 +60,5 @@ app.get("/", (req, res) => {
     console.log("Rejected");
   });
 
-
-  // app.listen(3333, () => {
-  //   console.log("Express listening at 3333");
-  // });
 })();
 
