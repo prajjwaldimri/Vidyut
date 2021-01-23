@@ -34,4 +34,9 @@ export default class Wallet {
 
     return block;
   }
+
+  static isSignatureValid(publicKey: string, signature: string, msgHash: string) {
+    const key = elliptic.keyFromPublic(publicKey);
+    return key.verify(msgHash, signature);
+  }
 }

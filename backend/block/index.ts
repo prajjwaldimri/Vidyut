@@ -1,5 +1,5 @@
 import Block from "./block";
 import BlockHeader from "./blockHeader";
-import BlockBody from "./blockBody";
+import { BlockBody, BlockBodyType } from "./blockBody";
 
-export { Block, BlockHeader, BlockBody };
+export { Block, BlockHeader, BlockBody, BlockBodyType };

@@ -26,7 +26,9 @@ class BlockBodyContract {
 
   constructor(
     public producer: string,
+    public producerSign: string,
     public consumer: string,
+    public consumerSign: string,
     public amount: number,
     public fulfilled: boolean
   ) {
@@ -40,7 +42,7 @@ class BlockBodyReputation {
     public peer: string,
     public contract: string,
     public isNegative: boolean
-  ) {}
+  ) { }
 }
 
-export { BlockBody, BlockBodyContract, BlockBodyReputation };
+export { BlockBody, BlockBodyContract, BlockBodyReputation, BlockBodyType };
