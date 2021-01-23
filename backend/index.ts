@@ -3,7 +3,12 @@ import defaults from 'dat-swarm-defaults';
 import crypto from 'crypto';
 import getPort from 'get-port';
 
-import { MessageHandler, MessageType } from "./messageHandler";
+import { MessageReceiver, MessageSender, MessageType } from "./comm";
+import { Chain } from './chain';
+import Wallet from './wallet';
+
+const chain = new Chain();
+const wallet = new Wallet();
 
 (async () => {
 
@@ -11,9 +16,10 @@ import { MessageHandler, MessageType } from "./messageHandler";
   let connSeq = 0;
   let channel = 'Vidyut';
 
-  const myPeerId = crypto.randomBytes(32);
+  const myPeerId = wallet.publicKey;
 
-  const messageHandler = new MessageHandler(peers, myPeerId.toString('hex'));
+  const messageSender = new MessageSender(peers, myPeerId);
+  const messageReceiver = new MessageReceiver(peers, myPeerId, chain, wallet);
 
   const config = defaults({ id: myPeerId });
   const swarm = Swarm(config);
@@ -21,10 +27,12 @@ import { MessageHandler, MessageType } from "./messageHandler";
 
   swarm.listen(port);
   console.log(`Listening on ${port}`);
+
   swarm.join(channel, { announce: true });
+
   swarm.on('connection', (conn, info) => {
     const seq = connSeq;
-    const peerId = info.id.toString('hex');
+    const peerId = info.id;
     if (info.initiator) {
       try {
         conn.setKeepAlive(true, 600);
@@ -38,11 +46,8 @@ import { MessageHandler, MessageType } from "./messageHandler";
       connSeq++;
     }
 
-    messageHandler.broadcast(MessageType.BLOCK, "Testing");
-
-    conn.on('data', (data) => {
-      let message = JSON.parse(data);
-      console.log(message);
+    conn.on('data', (data: string) => {
+      messageReceiver.process(JSON.parse(data));
     });
 
     conn.on('close', () => {
