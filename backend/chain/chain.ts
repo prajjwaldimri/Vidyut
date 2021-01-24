@@ -74,8 +74,19 @@ export default class Chain {
 
   addBlock(block: Block) {
     // Check if the current block has index greater than previous block on the local chain
+    if (this.index >= block.index) {
+      throw new Error("The last block on the chain has an higher or equal index number than the block to be added");
+    }
 
     // Check the prevHash on the block being added.
+    if (block.header.prevBlockHash !== this.blocks[this.index].hash) {
+      throw new Error("The current block doesn't have the correct hash of the previous block");
+    }
+
+    // Check if the block is valid
+    if (!this.isBlockValid(block)) {
+      throw new Error("Block is not valid! Check the debug logs.");
+    }
 
     this.blocks.push(block);
 
