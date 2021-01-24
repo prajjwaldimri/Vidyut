@@ -1,11 +1,13 @@
 import Swarm from 'discovery-swarm';
 import defaults from 'dat-swarm-defaults';
-import crypto from 'crypto';
 import getPort from 'get-port';
+import { CLI } from "cliffy";
+import Table from "cli-table3";
 
 import { MessageReceiver, MessageSender, MessageType } from "./comm";
 import { Chain } from './chain';
 import Wallet from './wallet';
+import { table } from 'console';
 
 const chain = new Chain();
 const wallet = new Wallet();
@@ -26,7 +28,6 @@ const wallet = new Wallet();
   const port = await getPort();
 
   swarm.listen(port);
-  console.log(`Listening on ${port}`);
 
   swarm.join(channel, { announce: true });
 
@@ -42,7 +43,7 @@ const wallet = new Wallet();
     }
 
     if (!peers[peerId]) {
-      peers[peerId] = { conn, seq };
+      peers[peerId] = { conn, seq, isActive: true };
       connSeq++;
     }
 
@@ -51,9 +52,8 @@ const wallet = new Wallet();
     });
 
     conn.on('close', () => {
-      console.log(`Connection ${seq} closed`);
       if (peers[peerId] && peers[peerId].seq === seq) {
-        delete peers[peerId];
+        peers[peerId].isActive = false;
       }
     });
 
@@ -66,6 +66,22 @@ const wallet = new Wallet();
   swarm.on("peer-rejected", () => {
     console.log("Rejected");
   });
+
+  const cli = new CLI().setDelimiter(">").addCommand("list", {
+    options: [{ label: "peers", description: "Lists all the peers" }],
+    action: (params, options) => {
+      if (options.peers) {
+        const peerTable = new Table({ head: ['Sequence Number', 'Address', 'Is Peer Active?'] });
+        for (const peer in peers) {
+          peerTable.push([`${peers[peer].seq}`, `${peer}`, `${peers[peer].isActive}`]);
+        }
+        console.log(peerTable.toString());
+        return;
+      }
+
+      console.log("Use list --help to get all the options");
+    }
+  }).show();
 
 })();
 

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --project ./",
-    "dev": "ts-node-dev --respawn --transpile-only --debug index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only index.ts",
     "peer-server": "peerjs --port 9000 --key vidyut --path /vidyut --allow_discovery"
   },
   "author": "",
@@ -17,12 +17,13 @@
     "@types/get-port": "^4.2.0",
     "@types/nanoid": "^2.1.0",
     "@types/node": "^14.14.20",
-    "@types/prompts": "^2.0.9",
     "ts-node": "^9.1.1",
     "ts-node-dev": "^1.1.1",
     "typescript": "^4.1.3"
   },
   "dependencies": {
+    "cli-table3": "^0.6.0",
+    "cliffy": "^2.4.2",
     "cors": "^2.8.5",
     "dat-swarm-defaults": "^1.0.2",
     "discovery-swarm": "^6.1.0",
@@ -30,7 +31,6 @@
     "express": "^4.17.1",
     "get-port": "^5.1.1",
     "nanoid": "^3.1.20",
-    "prompts": "^2.4.0",
     "sha3": "^2.1.3"
   }
 }
