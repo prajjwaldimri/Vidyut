@@ -5,11 +5,12 @@ import { Socket } from "net";
 import { CLI } from "cliffy";
 import Table from "cli-table3";
 
+import generate from "nanoid-generate/nolookalikes";
+
 import { MessageReceiver, MessageSender, MessageType } from "./comm";
 import { Chain } from "./chain";
 import Wallet from "./wallet";
 import Peer from "./comm/peer";
-import { nanoid } from "nanoid";
 
 const chain = new Chain();
 const wallet = new Wallet();
@@ -17,7 +18,7 @@ const wallet = new Wallet();
 (async () => {
   const peers: { string: Peer } | {} = {};
 
-  const myPeerId = nanoid();
+  const myPeerId = generate(21);
 
   const messageSender = new MessageSender(peers, myPeerId, wallet);
   const messageReceiver = new MessageReceiver(peers, myPeerId, chain, wallet);
