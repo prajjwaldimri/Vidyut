@@ -115,5 +115,33 @@ const wallet = new Wallet();
         },
       },
     })
+    .addCommand("send", {
+      action: () => console.log("Use send --help to get all the options"),
+      subcommands: {
+        message: {
+          description: "Sends a message to a peer",
+          parameters: ["seq", "msg"],
+          action: (params) => {
+            let foundPeer: any = null;
+            for (const peer in peers) {
+              if (peers[peer].seq == params.seq) {
+                foundPeer = peer;
+              }
+            }
+            if (foundPeer) {
+              messageSender.sendMessageToPeer(
+                foundPeer,
+                MessageType.TESTING,
+                params.msg
+              );
+            } else {
+              console.log(
+                "No peer with that sequence number found. Use list @peers to get the list of peers"
+              );
+            }
+          },
+        },
+      },
+    })
     .show();
 })();

@@ -6,13 +6,14 @@ enum MessageType {
   BLOCK_ADDITION_CONTRACT = "BLOCK_ADDITION_CONTRACT",
   VALIDATOR_ADDITION = "VALIDATOR_ADDITION",
   VALIDATOR_APPROVAL = "VALIDATOR_APPROVAL",
-  CHAIN_REQUEST = "CHAIN_REQUEST"
+  CHAIN_REQUEST = "CHAIN_REQUEST",
+  TESTING = "TESTING",
 }
 
 interface Message {
-  to: string,
-  from: string,
-  type: MessageType,
+  to: string;
+  from: string;
+  type: MessageType;
   data: string;
 }
 

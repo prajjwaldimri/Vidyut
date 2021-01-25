@@ -21,7 +21,7 @@ export default class Block {
     amount: number
   ): Block {
     const blockBody = new BlockBody(
-      new BlockBodyContract(producer, consumer, amount, false),
+      new BlockBodyContract(producer, "", consumer, "", amount, false),
       undefined
     );
 
