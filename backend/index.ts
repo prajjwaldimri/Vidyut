@@ -7,10 +7,9 @@ import Table from "cli-table3";
 
 import generate from "nanoid-generate/nolookalikes";
 
-import { MessageReceiver, MessageSender, MessageType } from "./comm";
+import { MessageReceiver, MessageSender, MessageType, Peer } from "./comm";
 import { Chain } from "./chain";
 import Wallet from "./wallet";
-import Peer from "./comm/peer";
 
 const chain = new Chain();
 const wallet = new Wallet();

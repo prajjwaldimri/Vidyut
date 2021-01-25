@@ -1,8 +1,6 @@
-import { nanoid } from "nanoid";
 import { Socket } from "net";
-import { Message, MessageType } from ".";
+import { Message, MessageType, Peer } from ".";
 import Wallet from "../wallet";
-import Peer from "./peer";
 
 export default class MessageSender {
   constructor(

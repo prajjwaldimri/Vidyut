@@ -1,8 +1,7 @@
 import { Socket } from "net";
-import { Message, MessageType } from ".";
+import { Message, MessageType, Peer } from ".";
 import { Chain } from "../chain";
 import Wallet from "../wallet";
-import Peer from "./peer";
 
 let seq = 0;
 

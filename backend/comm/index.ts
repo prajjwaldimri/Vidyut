@@ -1,5 +1,15 @@
+import { Socket } from "net";
+
 import MessageSender from "./messageSender";
 import MessageReceiver from "./messageReceiver";
+
+interface Peer {
+  seq: number;
+  port: number;
+  host: string;
+  publicKey: string;
+  socket: Socket;
+}
 
 enum MessageType {
   BLOCK_ADDITION_REPUTATION = "BLOCK_ADDITION_REPUTATION",
@@ -18,4 +28,4 @@ interface Message {
   data: string;
 }
 
-export { MessageReceiver, MessageSender, MessageType, Message };
+export { MessageReceiver, MessageSender, MessageType, Message, Peer };
