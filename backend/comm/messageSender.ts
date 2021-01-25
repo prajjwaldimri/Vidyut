@@ -1,8 +1,15 @@
+import { nanoid } from "nanoid";
+import { Socket } from "net";
 import { Message, MessageType } from ".";
+import Wallet from "../wallet";
+import Peer from "./peer";
 
 export default class MessageSender {
-
-  constructor(public peers: object, private myId: string) { }
+  constructor(
+    public peers: { string: Peer } | {},
+    private myId: string,
+    private wallet: Wallet
+  ) {}
 
   broadcast(type: MessageType, data: string) {
     for (let id in this.peers) {
@@ -12,8 +19,20 @@ export default class MessageSender {
 
   sendMessageToPeer(toId: string, type: MessageType, data: string) {
     let message: Message = { to: toId, from: this.myId, type, data };
-    this.peers[toId].conn.write(JSON.stringify(message));
+    this.peers[toId].socket.write(JSON.stringify(message));
+  }
+
+  sendHandshakeToSocket(socket: Socket) {
+    let message: Message = {
+      to: "",
+      from: this.myId,
+      type: MessageType.HANDSHAKE,
+      data: JSON.stringify({
+        localAddress: socket.localAddress,
+        localPort: socket.localPort,
+        publicKey: this.wallet.publicKey,
+      }),
+    };
+    socket.write(JSON.stringify(message));
   }
 }
-
-

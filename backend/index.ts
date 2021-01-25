@@ -1,6 +1,6 @@
-import Swarm from "discovery-swarm";
-import defaults from "dat-swarm-defaults";
-import getPort from "get-port";
+import hyperswarm from "hyperswarm";
+import crypto from "crypto";
+import { Socket } from "net";
 
 import { CLI } from "cliffy";
 import Table from "cli-table3";
@@ -8,77 +8,51 @@ import Table from "cli-table3";
 import { MessageReceiver, MessageSender, MessageType } from "./comm";
 import { Chain } from "./chain";
 import Wallet from "./wallet";
+import Peer from "./comm/peer";
+import { nanoid } from "nanoid";
 
 const chain = new Chain();
 const wallet = new Wallet();
 
 (async () => {
-  const peers = {};
-  let connSeq = 0;
-  let channel = "Vidyut";
+  const peers: { string: Peer } | {} = {};
 
-  const myPeerId = wallet.publicKey;
+  const myPeerId = nanoid();
 
-  const messageSender = new MessageSender(peers, myPeerId);
+  const messageSender = new MessageSender(peers, myPeerId, wallet);
   const messageReceiver = new MessageReceiver(peers, myPeerId, chain, wallet);
 
-  const config = defaults({ id: myPeerId });
-  const swarm = Swarm(config);
-  const port = await getPort();
+  const swarm = hyperswarm({ maxPeers: 1000 });
+  const topic = crypto.createHash("sha256").update("Vidyut").digest();
 
-  swarm.listen(port);
+  swarm.join(topic, { lookup: true, announce: true });
 
-  swarm.join(channel, { announce: true });
+  swarm.on("connection", (socket: Socket, info) => {
+    messageSender.sendHandshakeToSocket(socket);
 
-  swarm.on("connection", (conn, info) => {
-    const seq = connSeq;
-    const peerId = info.id;
-    if (info.initiator) {
-      try {
-        conn.setKeepAlive(true, 600);
-      } catch (exception) {
-        console.log("Error", exception);
-      }
-    }
-
-    if (!peers[peerId]) {
-      peers[peerId] = { conn, seq, isActive: true };
-      connSeq++;
-    }
-
-    conn.on("data", (data: string) => {
-      messageReceiver.process(JSON.parse(data));
-    });
-
-    conn.on("close", () => {
-      if (peers[peerId] && peers[peerId].seq === seq) {
-        peers[peerId].isActive = false;
-      }
+    socket.on("data", (data) => {
+      messageReceiver.process(JSON.parse(data.toString()), socket);
     });
   });
 
-  swarm.on("peer-banned", () => {
-    console.log("Banned");
-  });
-
-  swarm.on("peer-rejected", () => {
-    console.log("Rejected");
-  });
+  swarm.on("disconnection", (socket: Socket, info) => {});
 
   const cli = new CLI()
+    .setName("Vidyut CLI")
+    .setVersion("0.1")
     .setDelimiter(">")
     .addCommand("list", {
       options: [{ label: "peers", description: "Lists all the peers" }],
       action: (params, options) => {
         if (options.peers) {
           const peerTable = new Table({
-            head: ["Sequence Number", "Address", "Is Peer Active?"],
+            head: ["Sequence Number", "Peer ID", "IP Address : PORT"],
           });
           for (const peer in peers) {
             peerTable.push([
               `${peers[peer].seq}`,
               `${peer}`,
-              `${peers[peer].isActive}`,
+              `${peers[peer].host} : ${peers[peer].port}`,
             ]);
           }
           console.log(peerTable.toString());
