@@ -10,8 +10,12 @@ export default class Wallet {
   public balance: number;
   private keyPair: eddsa.KeyPair;
 
-  constructor() {
-    this.keyPair = elliptic.keyFromSecret(crypto.randomBytes(32));
+  constructor(secret?: string) {
+    if (secret && secret?.trim().length > 0) {
+      this.keyPair = elliptic.keyFromSecret(secret);
+    } else {
+      this.keyPair = elliptic.keyFromSecret(crypto.randomBytes(32));
+    }
 
     this.publicKey = this.keyPair.getPublic("hex");
     this.balance = 0;
@@ -19,6 +23,10 @@ export default class Wallet {
 
   sign(data: object): string {
     return this.keyPair.sign(hasher(JSON.stringify(data))).toHex();
+  }
+
+  getSecret(): string {
+    return this.keyPair.getSecret("hex");
   }
 
   signBlockAsCreator(block: Block): Block {
@@ -35,7 +43,11 @@ export default class Wallet {
     return block;
   }
 
-  static isSignatureValid(publicKey: string, signature: string, msgHash: string) {
+  static isSignatureValid(
+    publicKey: string,
+    signature: string,
+    msgHash: string
+  ) {
     const key = elliptic.keyFromPublic(publicKey);
     return key.verify(msgHash, signature);
   }

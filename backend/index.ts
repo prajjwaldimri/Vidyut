@@ -7,17 +7,33 @@ import Table from "cli-table3";
 
 import generate from "nanoid-generate/nolookalikes";
 
+import Conf from "conf";
+const config = new Conf();
+
 import { MessageReceiver, MessageSender, MessageType, Peer } from "./comm";
 import { Chain } from "./chain";
 import Wallet from "./wallet";
 
 const chain = new Chain();
-const wallet = new Wallet();
+let wallet: Wallet;
+
+if (config.has("privateKey")) {
+  wallet = new Wallet(config.get("privateKey") as string);
+} else {
+  wallet = new Wallet();
+  config.set("privateKey", wallet.getSecret());
+}
 
 (async () => {
   const peers: { string: Peer } | {} = {};
 
-  const myPeerId = generate(21);
+  let myPeerId: string;
+  if (config.has("myPeerId")) {
+    myPeerId = config.get("myPeerId") as string;
+  } else {
+    myPeerId = generate(21);
+    config.set("myPeerId", myPeerId);
+  }
 
   const messageSender = new MessageSender(peers, myPeerId, wallet);
   const messageReceiver = new MessageReceiver(peers, myPeerId, chain, wallet);
