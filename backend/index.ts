@@ -85,6 +85,10 @@ if (config.has("privateKey")) {
           label: "latestBlock",
           description: "The last/latest block in the local chain",
         },
+        {
+          label: "peerId",
+          description: "Shows your own peer id",
+        },
       ],
       action: (params, options) => {
         if (options.walletKey) {
@@ -92,6 +96,9 @@ if (config.has("privateKey")) {
           return;
         } else if (options.latestBlock) {
           console.log(chain.blocks[chain.blocks.length - 1]);
+          return;
+        } else if (options.peerId) {
+          console.log(myPeerId);
           return;
         }
 
