@@ -51,7 +51,13 @@ if (config.has("privateKey")) {
     });
   });
 
-  swarm.on("disconnection", (socket: Socket, info) => {});
+  swarm.on("peer-rejected", (peer) => {
+    console.log("Rejected");
+  });
+
+  swarm.on("disconnection", (socket: Socket, info) => {
+    console.log("Disconnected");
+  });
 
   const cli = new CLI()
     .setName("Vidyut CLI")

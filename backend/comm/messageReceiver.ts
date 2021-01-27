@@ -32,6 +32,9 @@ export default class MessageReceiver {
         seq++;
         break;
 
+      case MessageType.VALIDATOR_ADDITION:
+        break;
+
       default:
         console.log("Message: ", message.data);
         break;
