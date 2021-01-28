@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --project ./",
-    "dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "dev-1": "ts-node-dev --respawn --transpile-only index.ts peer1",
+    "dev-2": "ts-node-dev --respawn --transpile-only index.ts peer2",
+    "dev-3": "ts-node-dev --respawn --transpile-only index.ts peer3",
+    "dev-4": "ts-node-dev --respawn --transpile-only index.ts peer3",
     "peer-server": "peerjs --port 9000 --key vidyut --path /vidyut --allow_discovery"
   },
   "author": "",

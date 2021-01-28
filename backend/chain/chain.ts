@@ -14,7 +14,7 @@ export default class Chain {
     // Chain starts with a validator which is the initiator of the network. In an app this would be added using methods like QR scan or manual address entry.
     this.validators.push(
       new Validator(
-        "2SzS6B9SbCyESJHWBV4rh",
+        "M96G8MBQF4bQeH5mDwbPK",
         "--Initiator--",
         "--Initiator--",
         10,

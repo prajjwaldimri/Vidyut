@@ -8,7 +8,8 @@ import Table from "cli-table3";
 import generate from "nanoid-generate/nolookalikes";
 
 import Conf from "conf";
-const config = new Conf();
+const configName = process.argv.slice(2)[0];
+const config = new Conf({ configName });
 
 import { MessageReceiver, MessageSender, MessageType, Peer } from "./comm";
 import { Chain } from "./chain";
@@ -148,3 +149,7 @@ if (config.has("privateKey")) {
     })
     .show();
 })();
+
+process.on("uncaughtException", (err) => {
+  console.log("Uncaught Exception", err.stack);
+});
