@@ -126,7 +126,15 @@ export default class Chain {
     this.index += 1;
   }
 
-  addValidator() {
-    // Check the signature of the approving validator
+  addValidator(validator: Validator) {
+    if (
+      Wallet.isSignatureValid(
+        validator.approvedBy,
+        validator.approvedBySign,
+        validator.hash
+      )
+    ) {
+      this.validators.push(validator);
+    }
   }
 }
