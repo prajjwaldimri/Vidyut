@@ -1,4 +1,5 @@
 import { Block, BlockBodyType } from "../block";
+import hasher from "../util/hasher";
 import Wallet from "../wallet";
 import Validator from "./validator";
 
@@ -12,16 +13,18 @@ export default class Chain {
     this.blocks = [];
     this.validators = [];
     // Chain starts with a validator which is the initiator of the network. In an app this would be added using methods like QR scan or manual address entry.
-    this.validators.push(
-      new Validator(
-        "M96G8MBQF4bQeH5mDwbPK",
-        "--Initiator--",
-        "--Initiator--",
-        10,
-        10,
-        4
-      )
+    const validator = new Validator(
+      "744f8a46a845b268a2f46dc636e4ac323030348dfb72957bb657bcc8012c8ab4",
+      "--Initiator--",
+      "--Initiator--",
+      10,
+      10,
+      4,
+      ""
     );
+
+    validator.hash = hasher(JSON.stringify(validator));
+    this.validators.push(validator);
   }
 
   isBlockValid(block: Block): boolean {

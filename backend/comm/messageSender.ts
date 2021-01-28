@@ -1,11 +1,13 @@
 import { Socket } from "net";
 import { Message, MessageType, Peer } from ".";
+import { Chain } from "../chain";
 import Wallet from "../wallet";
 
 export default class MessageSender {
   constructor(
     public peers: { string: Peer } | {},
     private myId: string,
+    private chain: Chain,
     private wallet: Wallet
   ) {}
 
@@ -32,5 +34,21 @@ export default class MessageSender {
       }),
     };
     socket.write(JSON.stringify(message));
+  }
+
+  sendReputationInfoToValidator() {
+    // Choose a random validator
+    const { address: validatorAddress } = this.chain.validators[
+      Math.floor(Math.random() * this.chain.validators.length)
+    ];
+
+    // Send information
+    this.sendMessageToPeer(
+      validatorAddress,
+      MessageType.VALIDATOR_APPROVAL,
+      JSON.stringify({
+        message: "Replace this data with personally identifiable information",
+      })
+    );
   }
 }

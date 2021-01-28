@@ -5,8 +5,6 @@ import { Socket } from "net";
 import { CLI } from "cliffy";
 import Table from "cli-table3";
 
-import generate from "nanoid-generate/nolookalikes";
-
 import Conf from "conf";
 const configName = process.argv.slice(2)[0];
 const config = new Conf({ configName });
@@ -28,16 +26,16 @@ if (config.has("privateKey")) {
 (async () => {
   const peers: { string: Peer } | {} = {};
 
-  let myPeerId: string;
-  if (config.has("myPeerId")) {
-    myPeerId = config.get("myPeerId") as string;
-  } else {
-    myPeerId = generate(21);
-    config.set("myPeerId", myPeerId);
-  }
+  let myPeerId = wallet.publicKey;
 
-  const messageSender = new MessageSender(peers, myPeerId, wallet);
-  const messageReceiver = new MessageReceiver(peers, myPeerId, chain, wallet);
+  const messageSender = new MessageSender(peers, myPeerId, chain, wallet);
+  const messageReceiver = new MessageReceiver(
+    peers,
+    myPeerId,
+    chain,
+    wallet,
+    messageSender
+  );
 
   const swarm = hyperswarm({ maxPeers: 1000 });
   const topic = crypto.createHash("sha256").update("Vidyut").digest();
@@ -143,6 +141,12 @@ if (config.has("privateKey")) {
                 "No peer with that sequence number found. Use list @peers to get the list of peers"
               );
             }
+          },
+        },
+        validatorApproval: {
+          description: "Sends a request to become validator",
+          action: () => {
+            messageSender.sendReputationInfoToValidator();
           },
         },
       },

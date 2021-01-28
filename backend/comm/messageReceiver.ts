@@ -1,6 +1,7 @@
 import { Socket } from "net";
-import { Message, MessageType, Peer } from ".";
+import { Message, MessageSender, MessageType, Peer } from ".";
 import { Chain, Validator } from "../chain";
+import hasher from "../util/hasher";
 import Wallet from "../wallet";
 
 let seq = 0;
@@ -10,7 +11,8 @@ export default class MessageReceiver {
     public peers: { string: Peer } | {},
     private myId: string,
     private chain: Chain,
-    private wallet: Wallet
+    private wallet: Wallet,
+    private messageSender: MessageSender
   ) {}
 
   process(message: Message, socket?: Socket) {
@@ -20,7 +22,7 @@ export default class MessageReceiver {
         break;
 
       case MessageType.HANDSHAKE:
-        const data = JSON.parse(message.data);
+        let data = JSON.parse(message.data);
         if (!this.peers[message.from])
           this.peers[message.from] = {
             seq,
@@ -34,12 +36,39 @@ export default class MessageReceiver {
 
       // Adds a validator to local chain
       case MessageType.VALIDATOR_ADDITION:
-        if (JSON.parse(message.data) instanceof Validator)
-          this.chain.addValidator(JSON.parse(message.data));
+        const validator = JSON.parse(message.data) as Validator;
+        this.chain.addValidator(validator);
         break;
 
       // Approving a validator
       case MessageType.VALIDATOR_APPROVAL:
+        data = JSON.parse(message.data);
+
+        // Simulates a real working 3rd party API like UIDAI
+        setTimeout(() => {
+          const isValidatorAccepted = !Math.round(Math.random());
+
+          if (isValidatorAccepted) {
+            const validator = new Validator(
+              message.from,
+              this.wallet.publicKey,
+              "",
+              0,
+              Math.random() * 20,
+              Math.random() * 10,
+              ""
+            );
+            const sign = this.wallet.sign(validator);
+
+            validator.hash = hasher(JSON.stringify(validator));
+            validator.approvedBySign = sign;
+
+            this.messageSender.broadcast(
+              MessageType.VALIDATOR_ADDITION,
+              JSON.stringify(validator)
+            );
+          }
+        }, Math.floor(Math.random() * 1000));
         break;
 
       default:
