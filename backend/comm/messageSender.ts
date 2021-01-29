@@ -1,6 +1,8 @@
 import { Socket } from "net";
 import { Message, MessageType, Peer } from ".";
+import { BlockBodyContract } from "../block/blockBody";
 import { Chain } from "../chain";
+import { hashBlockBodyContract } from "../util/hasher";
 import Wallet from "../wallet";
 
 export default class MessageSender {
@@ -49,6 +51,26 @@ export default class MessageSender {
       JSON.stringify({
         message: "Replace this data with personally identifiable information",
       })
+    );
+  }
+
+  sendBuyElectricityRequest(toId: string, amount: number, rate: number) {
+    const data = new BlockBodyContract(
+      toId,
+      "",
+      this.myId,
+      "",
+      amount,
+      rate,
+      false
+    );
+
+    data.consumerSign = this.wallet.sign(hashBlockBodyContract(data));
+
+    this.sendMessageToPeer(
+      toId,
+      MessageType.BUY_ELECTRICITY,
+      JSON.stringify(data)
     );
   }
 }

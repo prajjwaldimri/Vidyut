@@ -1,5 +1,5 @@
 import { Block, BlockBodyType } from "../block";
-import hasher from "../util/hasher";
+import { hasher } from "../util/hasher";
 import Wallet from "../wallet";
 import Validator from "./validator";
 

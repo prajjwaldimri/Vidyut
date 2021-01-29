@@ -1,7 +1,8 @@
 import { Socket } from "net";
 import { Message, MessageSender, MessageType, Peer } from ".";
+import { BlockBodyContract } from "../block/blockBody";
 import { Chain, Validator } from "../chain";
-import hasher from "../util/hasher";
+import { hasher, hashBlockBodyContract, hashValidator } from "../util/hasher";
 import Wallet from "../wallet";
 
 let seq = 0;
@@ -58,7 +59,7 @@ export default class MessageReceiver {
               Math.random() * 10,
               ""
             );
-            const sign = this.wallet.sign(validator);
+            const sign = this.wallet.sign(hashValidator(validator));
 
             validator.hash = hasher(JSON.stringify(validator));
             validator.approvedBySign = sign;
@@ -69,6 +70,43 @@ export default class MessageReceiver {
             );
           }
         }, Math.floor(Math.random() * 1000));
+        break;
+
+      case MessageType.BUY_ELECTRICITY:
+        let contract = JSON.parse(message.data) as BlockBodyContract;
+
+        let currentValidator: Validator | null = null;
+
+        for (const validator of this.chain.validators) {
+          if (validator.address === this.myId) {
+            currentValidator = validator;
+          }
+        }
+
+        // Check if we can supply the current requested amount on the requested rate
+        if (!currentValidator) return;
+
+        if (
+          currentValidator.energyCapacity <= contract.amount &&
+          currentValidator.energyRate < contract.rate
+        )
+          return;
+
+        // Check if the sign of consumer is valid
+        if (
+          !Wallet.isSignatureValid(
+            message.from,
+            contract.consumerSign,
+            hashBlockBodyContract(contract)
+          )
+        )
+          return;
+
+        // Broadcast the block
+        contract.producerSign = this.wallet.sign(
+          hashBlockBodyContract(contract)
+        );
+
         break;
 
       default:

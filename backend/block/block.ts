@@ -1,4 +1,4 @@
-import hasher from "../util/hasher";
+import { hasher } from "../util/hasher";
 import { BlockBody, BlockBodyContract, BlockBodyReputation } from "./blockBody";
 import BlockHeader from "./blockHeader";
 
@@ -18,10 +18,11 @@ export default class Block {
     prevBlock: Block,
     producer: string,
     consumer: string,
-    amount: number
+    amount: number,
+    rate: number
   ): Block {
     const blockBody = new BlockBody(
-      new BlockBodyContract(producer, "", consumer, "", amount, false),
+      new BlockBodyContract(producer, "", consumer, "", amount, rate, false),
       undefined
     );
 

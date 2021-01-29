@@ -1,6 +1,6 @@
 import { eddsa } from "elliptic";
 import crypto from "crypto";
-import hasher from "../util/hasher";
+import { hasher } from "../util/hasher";
 import { Block } from "../block";
 
 const elliptic = new eddsa("ed25519");
@@ -21,8 +21,8 @@ export default class Wallet {
     this.balance = 0;
   }
 
-  sign(data: object): string {
-    return this.keyPair.sign(hasher(JSON.stringify(data))).toHex();
+  sign(hash: string): string {
+    return this.keyPair.sign(hash).toHex();
   }
 
   getSecret(): string {
@@ -31,14 +31,18 @@ export default class Wallet {
 
   signBlockAsCreator(block: Block): Block {
     block.creator = this.publicKey;
-    block.creatorSign = this.sign({ header: block.header, body: block.body });
+    block.creatorSign = this.sign(
+      JSON.stringify({ header: block.header, body: block.body })
+    );
 
     return block;
   }
 
   signBlockAsValidator(block: Block): Block {
     block.validator = this.publicKey;
-    block.validatorSign = this.sign({ header: block.header, body: block.body });
+    block.validatorSign = this.sign(
+      JSON.stringify({ header: block.header, body: block.body })
+    );
 
     return block;
   }

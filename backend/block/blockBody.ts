@@ -30,6 +30,7 @@ class BlockBodyContract {
     public consumer: string,
     public consumerSign: string,
     public amount: number,
+    public rate: number,
     public fulfilled: boolean
   ) {
     this.id = nanoid();
@@ -42,7 +43,7 @@ class BlockBodyReputation {
     public peer: string,
     public contract: string,
     public isNegative: boolean
-  ) { }
+  ) {}
 }
 
 export { BlockBody, BlockBodyContract, BlockBodyReputation, BlockBodyType };

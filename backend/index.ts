@@ -63,7 +63,10 @@ if (config.has("privateKey")) {
     .setVersion("0.1")
     .setDelimiter(">")
     .addCommand("list", {
-      options: [{ label: "peers", description: "Lists all the peers" }],
+      options: [
+        { label: "peers", description: "Lists all the peers" },
+        { label: "validators", description: "Lists all the validators" },
+      ],
       action: (params, options) => {
         if (options.peers) {
           const peerTable = new Table({
@@ -77,6 +80,20 @@ if (config.has("privateKey")) {
             ]);
           }
           console.log(peerTable.toString());
+          return;
+        } else if (options.validators) {
+          const validatorTable = new Table({
+            head: ["Address", "Energy Capacity", "Energy Rate", "Approved by"],
+          });
+          for (const validator of chain.validators) {
+            validatorTable.push([
+              `${validator.address}`,
+              `${validator.energyCapacity}`,
+              `${validator.energyRate}`,
+              `${validator.approvedBy}`,
+            ]);
+          }
+          console.log(validatorTable.toString());
           return;
         }
 
@@ -124,12 +141,8 @@ if (config.has("privateKey")) {
           description: "Sends a message to a peer",
           parameters: ["seq", "msg"],
           action: (params) => {
-            let foundPeer: any = null;
-            for (const peer in peers) {
-              if (peers[peer].seq == params.seq) {
-                foundPeer = peer;
-              }
-            }
+            let foundPeer: any = findPeerId(params.seq);
+
             if (foundPeer) {
               messageSender.sendMessageToPeer(
                 foundPeer,
@@ -149,9 +162,37 @@ if (config.has("privateKey")) {
             messageSender.sendReputationInfoToValidator();
           },
         },
+        buyRequest: {
+          description: "Request to buy electricity from a seller.",
+          parameters: ["seq", "amount", "rate"],
+          action: (params) => {
+            let foundPeer: any = findPeerId(params.seq);
+
+            if (foundPeer) {
+              messageSender.sendBuyElectricityRequest(
+                foundPeer,
+                Number.parseFloat(params.amount),
+                Number.parseFloat(params.rate)
+              );
+            } else {
+              console.log(
+                "No peer with that sequence number found. Use list @peers to get the list of peers"
+              );
+            }
+          },
+        },
       },
     })
     .show();
+
+  function findPeerId(seq: string) {
+    for (const peer in peers) {
+      if (peers[peer].seq == seq) {
+        return peer;
+      }
+    }
+    return null;
+  }
 })();
 
 process.on("uncaughtException", (err) => {

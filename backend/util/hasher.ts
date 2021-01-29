@@ -1,8 +1,28 @@
 import { SHA3 } from "sha3";
+import { BlockBodyContract } from "../block/blockBody";
+import { Validator } from "../chain";
 
-export default function hasher(data: string): string {
-  const hash = new SHA3(256);
+const hash = new SHA3(256);
+
+export function hasher(data: string): string {
+  hash.reset();
   hash.update(data);
 
   return hash.digest("hex");
+}
+
+export function hashBlockBodyContract(contract: BlockBodyContract): string {
+  let clonedContract = { ...contract };
+  clonedContract.consumerSign = "";
+  clonedContract.producerSign = "";
+
+  return hasher(JSON.stringify(clonedContract));
+}
+
+export function hashValidator(validator: Validator): string {
+  let clonedValidator = { ...validator };
+  clonedValidator.approvedBySign = "";
+  clonedValidator.hash = "";
+
+  return hasher(JSON.stringify(clonedValidator));
 }
