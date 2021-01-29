@@ -31,9 +31,10 @@ export function hashValidator(validator: Validator): string {
 export function hashBlock(block: Block): string {
   let clonedBlock = { ...block };
 
-  block.hash = "";
-  block.creatorSign = "";
-  block.validatorSign = "";
+  clonedBlock.hash = "";
+  clonedBlock.creatorSign = "";
+  clonedBlock.validator = "";
+  clonedBlock.validatorSign = "";
 
   return hasher(JSON.stringify(clonedBlock));
 }

@@ -16,7 +16,7 @@ export default class Chain {
 
     // Start with the genesis block;
     const block = new Block(
-      new BlockHeader("**GENESIS**", ""),
+      new BlockHeader("**GENESIS**", "", "0"),
       new BlockBody(
         undefined,
         new BlockBodyReputation(
@@ -38,7 +38,6 @@ export default class Chain {
     block.hash = hashBlock(block);
 
     this.blocks.push(block);
-    this.index++;
 
     // Chain starts with a validator which is the initiator of the network. In an app this would be added using methods like QR scan or manual address entry.
     const validator = new Validator(
@@ -61,6 +60,7 @@ export default class Chain {
     for (const currentValidator of this.validators) {
       if (currentValidator.address === block.validator) {
         validator = currentValidator;
+        break;
       }
     }
 
@@ -138,6 +138,7 @@ export default class Chain {
     for (const currentValidator of this.validators) {
       if (wallet.publicKey === currentValidator.address) {
         validator = currentValidator;
+        break;
       }
     }
 

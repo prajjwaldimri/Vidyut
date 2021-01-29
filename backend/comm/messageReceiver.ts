@@ -45,6 +45,7 @@ export default class MessageReceiver {
             MessageType.BLOCK_ADDITION_CONTRACT,
             JSON.stringify(validatedBlock)
           );
+          this.chain.addBlock(validatedBlock);
         }
         break;
 
@@ -92,6 +93,12 @@ export default class MessageReceiver {
             this.messageSender.broadcast(
               MessageType.VALIDATOR_ADDITION,
               JSON.stringify(validator)
+            );
+          } else {
+            this.messageSender.sendMessageToPeer(
+              message.from,
+              MessageType.TESTING,
+              "Rejected"
             );
           }
         }, Math.floor(Math.random() * 1000));

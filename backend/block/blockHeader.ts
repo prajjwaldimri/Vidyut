@@ -4,10 +4,10 @@ export default class BlockHeader {
   public created: string;
   public version: string;
 
-  constructor(prevBlockHash: string, bodyHash: string) {
+  constructor(prevBlockHash: string, bodyHash: string, created?: string) {
     this.prevBlockHash = prevBlockHash;
     this.bodyHash = bodyHash;
-    this.created = Date.now().toString();
+    this.created = created ? created : Date.now().toString();
     this.version = "0.1.0";
   }
 }

@@ -117,7 +117,20 @@ if (config.has("privateKey")) {
           console.log(wallet.publicKey);
           return;
         } else if (options.latestBlock) {
-          console.log(chain.blocks[chain.blocks.length - 1]);
+          const blockTable = new Table();
+          const block = chain.blocks[chain.blocks.length - 1];
+
+          blockTable.push(
+            { Index: block.index },
+            { Creator: block.creator },
+            { Validator: block.validator },
+            { Type: block.body.type },
+            { Hash: block.hash },
+            { BodyHash: block.header.bodyHash },
+            { PrevBlockHash: block.header.prevBlockHash }
+          );
+
+          console.log(blockTable.toString());
           return;
         } else if (options.peerId) {
           console.log(myPeerId);

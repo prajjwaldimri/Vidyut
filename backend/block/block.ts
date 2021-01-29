@@ -1,4 +1,4 @@
-import { hashBlock, hasher } from "../util/hasher";
+import { hashBlock, hashBlockBodyContract, hasher } from "../util/hasher";
 import Wallet from "../wallet";
 import { BlockBody, BlockBodyContract, BlockBodyReputation } from "./blockBody";
 import BlockHeader from "./blockHeader";
@@ -18,12 +18,13 @@ export default class Block {
   static createContractBlock(
     prevBlock: Block,
     contract: BlockBodyContract,
-    wallet: Wallet
+    wallet: Wallet,
+    contractId?: string
   ): Block {
     const blockBody = new BlockBody(contract);
     const header = new BlockHeader(
       prevBlock.hash,
-      hasher(JSON.stringify(blockBody))
+      hashBlockBodyContract(contract)
     );
     const block = new Block(
       header,
