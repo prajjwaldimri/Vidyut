@@ -1,4 +1,5 @@
 import { SHA3 } from "sha3";
+import { Block } from "../block";
 import { BlockBodyContract } from "../block/blockBody";
 import { Validator } from "../chain";
 
@@ -25,4 +26,14 @@ export function hashValidator(validator: Validator): string {
   clonedValidator.hash = "";
 
   return hasher(JSON.stringify(clonedValidator));
+}
+
+export function hashBlock(block: Block): string {
+  let clonedBlock = { ...block };
+
+  block.hash = "";
+  block.creatorSign = "";
+  block.validatorSign = "";
+
+  return hasher(JSON.stringify(clonedBlock));
 }

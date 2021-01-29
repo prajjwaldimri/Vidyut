@@ -1,4 +1,5 @@
-import { hasher } from "../util/hasher";
+import { hashBlock, hasher } from "../util/hasher";
+import Wallet from "../wallet";
 import { BlockBody, BlockBodyContract, BlockBodyReputation } from "./blockBody";
 import BlockHeader from "./blockHeader";
 
@@ -15,6 +16,33 @@ export default class Block {
   ) {}
 
   static createContractBlock(
+    prevBlock: Block,
+    contract: BlockBodyContract,
+    wallet: Wallet
+  ): Block {
+    const blockBody = new BlockBody(contract);
+    const header = new BlockHeader(
+      prevBlock.hash,
+      hasher(JSON.stringify(blockBody))
+    );
+    const block = new Block(
+      header,
+      blockBody,
+      prevBlock.index + 1,
+      wallet.publicKey,
+      "",
+      "",
+      "",
+      ""
+    );
+
+    block.hash = hashBlock(block);
+    block.creatorSign = wallet.sign(hashBlock(block));
+
+    return block;
+  }
+
+  static createEmptyContractBlock(
     prevBlock: Block,
     producer: string,
     consumer: string,
@@ -38,7 +66,10 @@ export default class Block {
     );
   }
 
-  static createReputationBlock(prevBlock: Block, relatedToBlock: Block): Block {
+  static createEmptyReputationBlock(
+    prevBlock: Block,
+    relatedToBlock: Block
+  ): Block {
     // Check if the relatedToBlock has a contract in it.
     if (!relatedToBlock.body.contract) {
       throw new Error(

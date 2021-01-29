@@ -73,4 +73,8 @@ export default class MessageSender {
       JSON.stringify(data)
     );
   }
+
+  sendSyncToPeer(toId: string) {
+    this.sendMessageToPeer(toId, MessageType.SYNC_REQUEST, "");
+  }
 }

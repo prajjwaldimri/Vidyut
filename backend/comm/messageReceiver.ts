@@ -1,5 +1,6 @@
 import { Socket } from "net";
 import { Message, MessageSender, MessageType, Peer } from ".";
+import { Block } from "../block";
 import { BlockBodyContract } from "../block/blockBody";
 import { Chain, Validator } from "../chain";
 import { hasher, hashBlockBodyContract, hashValidator } from "../util/hasher";
@@ -35,6 +36,28 @@ export default class MessageReceiver {
         seq++;
         break;
 
+      case MessageType.BLOCK_ADDITION_CONTRACT_UNVALIDATED:
+        data = JSON.parse(message.data);
+        const validatedBlock = this.chain.validateBlock(this.wallet, data);
+
+        if (validatedBlock) {
+          this.messageSender.broadcast(
+            MessageType.BLOCK_ADDITION_CONTRACT,
+            JSON.stringify(validatedBlock)
+          );
+        }
+        break;
+
+      case MessageType.BLOCK_ADDITION_CONTRACT:
+        const contractBlock = JSON.parse(message.data) as Block;
+        this.chain.addBlock(contractBlock);
+        break;
+
+      case MessageType.BLOCK_ADDITION_REPUTATION:
+        const reputationBlock = JSON.parse(message.data) as Block;
+        this.chain.addBlock(reputationBlock);
+        break;
+
       // Adds a validator to local chain
       case MessageType.VALIDATOR_ADDITION:
         const validator = JSON.parse(message.data) as Validator;
@@ -55,14 +78,16 @@ export default class MessageReceiver {
               this.wallet.publicKey,
               "",
               0,
-              Math.random() * 20,
-              Math.random() * 10,
+              Math.floor(Math.random() * 20 * 100) / 100,
+              Math.floor(Math.random() * 10 * 100) / 100,
               ""
             );
             const sign = this.wallet.sign(hashValidator(validator));
 
             validator.hash = hasher(JSON.stringify(validator));
             validator.approvedBySign = sign;
+
+            this.chain.addValidator(validator);
 
             this.messageSender.broadcast(
               MessageType.VALIDATOR_ADDITION,
@@ -80,17 +105,23 @@ export default class MessageReceiver {
         for (const validator of this.chain.validators) {
           if (validator.address === this.myId) {
             currentValidator = validator;
+            break;
           }
         }
 
         // Check if we can supply the current requested amount on the requested rate
-        if (!currentValidator) return;
+        if (!currentValidator) {
+          console.log("Not a validator");
+          return;
+        }
 
         if (
-          currentValidator.energyCapacity <= contract.amount &&
-          currentValidator.energyRate < contract.rate
-        )
+          currentValidator.energyCapacity <= contract.amount ||
+          currentValidator.energyRate > contract.rate
+        ) {
+          console.log("Rate or capacity less");
           return;
+        }
 
         // Check if the sign of consumer is valid
         if (
@@ -99,14 +130,38 @@ export default class MessageReceiver {
             contract.consumerSign,
             hashBlockBodyContract(contract)
           )
-        )
+        ) {
+          console.log("Signature of consumer not valid");
           return;
+        }
 
-        // Broadcast the block
         contract.producerSign = this.wallet.sign(
           hashBlockBodyContract(contract)
         );
 
+        // Broadcast the block
+        this.messageSender.broadcast(
+          MessageType.BLOCK_ADDITION_CONTRACT_UNVALIDATED,
+          JSON.stringify(
+            Block.createContractBlock(
+              this.chain.blocks[this.chain.blocks.length - 1],
+              contract,
+              this.wallet
+            )
+          )
+        );
+        break;
+
+      case MessageType.SYNC_REQUEST:
+        this.messageSender.sendMessageToPeer(
+          message.from,
+          MessageType.SYNC_RESPONSE,
+          JSON.stringify(this.chain)
+        );
+        break;
+
+      case MessageType.SYNC_RESPONSE:
+        this.chain.replaceChain(JSON.parse(message.data) as Chain);
         break;
 
       default:

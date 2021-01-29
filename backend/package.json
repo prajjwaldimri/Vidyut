@@ -8,8 +8,7 @@
     "dev-1": "ts-node-dev --respawn --transpile-only index.ts peer1",
     "dev-2": "ts-node-dev --respawn --transpile-only index.ts peer2",
     "dev-3": "ts-node-dev --respawn --transpile-only index.ts peer3",
-    "dev-4": "ts-node-dev --respawn --transpile-only index.ts peer3",
-    "peer-server": "peerjs --port 9000 --key vidyut --path /vidyut --allow_discovery"
+    "dev-4": "ts-node-dev --respawn --transpile-only index.ts peer4"
   },
   "author": "",
   "license": "GPLv3",

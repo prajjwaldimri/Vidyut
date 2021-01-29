@@ -183,6 +183,12 @@ if (config.has("privateKey")) {
         },
       },
     })
+    .addCommand("sync", {
+      description: "Syncs chains and validators",
+      action: () => {
+        messageSender.sendSyncToPeer(chain.validators[0].address);
+      },
+    })
     .show();
 
   function findPeerId(seq: string) {
