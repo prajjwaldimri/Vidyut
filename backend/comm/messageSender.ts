@@ -1,4 +1,6 @@
 import { Socket } from "net";
+import chalk from "chalk";
+
 import { Message, MessageType, Peer } from ".";
 import { BlockBodyContract } from "../block/blockBody";
 import { Chain } from "../chain";
@@ -22,6 +24,7 @@ export default class MessageSender {
   sendMessageToPeer(toId: string, type: MessageType, data: string) {
     let message: Message = { to: toId, from: this.myId, type, data };
     this.peers[toId].socket.write(JSON.stringify(message));
+    console.log(chalk.green(`Message sent to peer at ${Date.now()}`));
   }
 
   sendHandshakeToSocket(socket: Socket) {
@@ -52,6 +55,9 @@ export default class MessageSender {
         message: "Replace this data with personally identifiable information",
       })
     );
+    console.log(
+      chalk.green(`Validator approval request sent at ${Date.now()}`)
+    );
   }
 
   sendBuyElectricityRequest(toId: string, amount: number, rate: number) {
@@ -72,9 +78,11 @@ export default class MessageSender {
       MessageType.BUY_ELECTRICITY,
       JSON.stringify(data)
     );
+    console.log(chalk.green(`Buy request sent at ${Date.now()}`));
   }
 
   sendSyncToPeer(toId: string) {
     this.sendMessageToPeer(toId, MessageType.SYNC_REQUEST, "");
+    console.log(chalk.green(`Sync request sent at ${Date.now()}`));
   }
 }
