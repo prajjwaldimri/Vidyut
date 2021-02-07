@@ -5,16 +5,17 @@ import { Socket } from "net";
 import { CLI } from "cliffy";
 import Table from "cli-table3";
 
-import Conf from "conf";
-const configName = process.argv.slice(2)[0];
-const config = new Conf({ configName });
-
 import { MessageReceiver, MessageSender, MessageType, Peer } from "./comm";
 import { Chain } from "./chain";
 import Wallet from "./wallet";
 
-const chain = new Chain();
+let chain: Chain = new Chain();
 let wallet: Wallet;
+
+import Conf from "conf";
+import db from "./db";
+const configName = process.argv.slice(2)[0];
+const config = new Conf({ configName });
 
 if (config.has("privateKey")) {
   wallet = new Wallet(config.get("privateKey") as string);
@@ -27,6 +28,17 @@ if (config.has("privateKey")) {
   const peers: { string: Peer } | {} = {};
 
   let myPeerId = wallet.publicKey;
+
+  try {
+    let valueBlocks = await db.get("blocks");
+    chain.blocks = JSON.parse(valueBlocks.toString());
+
+    let valueValidators = await db.get("validators");
+    chain.validators = JSON.parse(valueValidators.toString());
+  } catch (err) {
+    await db.put("blocks", JSON.stringify(chain.blocks));
+    await db.put("validators", JSON.stringify(chain.validators));
+  }
 
   const messageSender = new MessageSender(peers, myPeerId, chain, wallet);
   const messageReceiver = new MessageReceiver(

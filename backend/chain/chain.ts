@@ -56,6 +56,7 @@ export default class Chain {
 
   isBlockValid(block: Block): boolean {
     // Check if the validator is present on the chain or not
+    console.log(block);
     let validator: Validator | undefined = undefined;
     for (const currentValidator of this.validators) {
       if (currentValidator.address === block.validator) {

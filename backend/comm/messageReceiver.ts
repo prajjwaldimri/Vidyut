@@ -3,6 +3,7 @@ import { Message, MessageSender, MessageType, Peer } from ".";
 import { Block } from "../block";
 import { BlockBodyContract } from "../block/blockBody";
 import { Chain, Validator } from "../chain";
+import db from "../db";
 import { hasher, hashBlockBodyContract, hashValidator } from "../util/hasher";
 import Wallet from "../wallet";
 
@@ -17,7 +18,7 @@ export default class MessageReceiver {
     private messageSender: MessageSender
   ) {}
 
-  process(message: Message, socket?: Socket) {
+  async process(message: Message, socket?: Socket) {
     switch (message.type) {
       case MessageType.TESTING:
         console.log("Message: ", message.data);
@@ -46,23 +47,27 @@ export default class MessageReceiver {
             JSON.stringify(validatedBlock)
           );
           this.chain.addBlock(validatedBlock);
+          await db.put("blocks", JSON.stringify(this.chain.blocks));
         }
         break;
 
       case MessageType.BLOCK_ADDITION_CONTRACT:
         const contractBlock = JSON.parse(message.data) as Block;
         this.chain.addBlock(contractBlock);
+        await db.put("blocks", JSON.stringify(this.chain.blocks));
         break;
 
       case MessageType.BLOCK_ADDITION_REPUTATION:
         const reputationBlock = JSON.parse(message.data) as Block;
         this.chain.addBlock(reputationBlock);
+        await db.put("blocks", JSON.stringify(this.chain.blocks));
         break;
 
       // Adds a validator to local chain
       case MessageType.VALIDATOR_ADDITION:
         const validator = JSON.parse(message.data) as Validator;
         this.chain.addValidator(validator);
+        await db.put("validators", JSON.stringify(this.chain.validators));
         break;
 
       // Approving a validator
@@ -70,7 +75,7 @@ export default class MessageReceiver {
         data = JSON.parse(message.data);
 
         // Simulates a real working 3rd party API like UIDAI
-        setTimeout(() => {
+        setTimeout(async () => {
           const isValidatorAccepted = !Math.round(Math.random());
 
           if (isValidatorAccepted) {
@@ -89,7 +94,7 @@ export default class MessageReceiver {
             validator.approvedBySign = sign;
 
             this.chain.addValidator(validator);
-
+            await db.put("validators", JSON.stringify(this.chain.validators));
             this.messageSender.broadcast(
               MessageType.VALIDATOR_ADDITION,
               JSON.stringify(validator)
