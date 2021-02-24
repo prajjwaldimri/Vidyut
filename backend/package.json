@@ -14,27 +14,27 @@
   "license": "GPLv3",
   "devDependencies": {
     "@types/chalk": "^2.2.0",
-    "@types/cors": "^2.8.9",
+    "@types/cors": "^2.8.10",
     "@types/elliptic": "^6.4.12",
     "@types/get-port": "^4.2.0",
     "@types/leveldown": "^4.0.2",
     "@types/levelup": "^4.3.0",
-    "@types/node": "^14.14.20",
+    "@types/node": "^14.14.31",
     "ts-node": "^9.1.1",
     "ts-node-dev": "^1.1.1",
-    "typescript": "^4.1.3"
+    "typescript": "^4.2.2"
   },
   "dependencies": {
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",
     "cliffy": "^2.4.2",
-    "conf": "^9.0.0",
-    "elliptic": "^6.5.3",
+    "conf": "^9.0.2",
+    "elliptic": "^6.5.4",
     "get-port": "^5.1.1",
     "hyperswarm": "^2.15.3",
     "leveldown": "^5.6.0",
     "levelup": "^4.4.0",
     "nanoid": "^3.1.20",
-    "sha3": "^2.1.3"
+    "sha3": "^2.1.4"
   }
 }
