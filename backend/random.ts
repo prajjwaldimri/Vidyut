@@ -2,8 +2,9 @@ import hyperswarm from "hyperswarm";
 import crypto from "crypto";
 import { Socket } from "net";
 
-import { CLI } from "cliffy";
-import Table from "cli-table3";
+import Koa from "koa";
+import serve from "koa-static";
+const app = new Koa();
 
 import { MessageReceiver, MessageSender, MessageType, Peer } from "./comm";
 import { Chain } from "./chain";
@@ -101,6 +102,10 @@ if (config.has("privateKey")) {
       console.log("Waiting this cycle.");
     }
   }, 5000);
+
+  app.use(serve("public"));
+
+  app.listen(3000);
 })();
 
 process.on("uncaughtException", (err) => {
