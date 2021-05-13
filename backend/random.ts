@@ -73,14 +73,34 @@ if (config.has("privateKey")) {
   setInterval(() => {
     const random = Math.random() * (100 - 1) + 1;
 
+    if (chain.validators.length < 1) {
+      console.log("Validators less than 1.");
+      return;
+    }
+
     if (random < 10) {
       // Sync with other blockchains
+      const randomValidatorIndex = Math.floor(
+        Math.random() * chain.validators.length
+      );
+      if (myPeerId === chain.validators[randomValidatorIndex].address) {
+        console.log("Sync encountered same destination and source address");
+        return;
+      }
+      console.log(
+        `Syncing chain with ${chain.validators[randomValidatorIndex].address}`
+      );
+      messageSender.sendSyncToPeer(
+        chain.validators[randomValidatorIndex].address
+      );
     } else if (random < 20) {
       // Send a validation request
     } else if (random < 30) {
       // Send a buy Request
+    } else {
+      console.log("Waiting this cycle.");
     }
-  }, 10000);
+  }, 5000);
 })();
 
 process.on("uncaughtException", (err) => {

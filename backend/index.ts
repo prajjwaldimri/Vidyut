@@ -29,6 +29,8 @@ if (config.has("privateKey")) {
 
   let myPeerId = wallet.publicKey;
 
+  // chain.validatorAddress = myPeerId;
+
   try {
     let valueBlocks = await db.get("blocks");
     chain.blocks = JSON.parse(valueBlocks.toString());

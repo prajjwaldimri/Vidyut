@@ -9,6 +9,8 @@ export default class Chain {
   public validators: Validator[];
   private index: number;
 
+  public validatorAddress?: string;
+
   constructor() {
     this.index = 0;
     this.blocks = [];
@@ -21,7 +23,8 @@ export default class Chain {
         undefined,
         new BlockBodyReputation(
           10,
-          "744f8a46a845b268a2f46dc636e4ac323030348dfb72957bb657bcc8012c8ab4",
+          this.validatorAddress ||
+            "ee21d04f68a4a6cd34d6d19bd35e25ca830d84904f6229cd43bff5a6414ca5e0",
           "--INITIATOR--",
           false
         )
@@ -41,7 +44,8 @@ export default class Chain {
 
     // Chain starts with a validator which is the initiator of the network. In an app this would be added using methods like QR scan or manual address entry.
     const validator = new Validator(
-      "744f8a46a845b268a2f46dc636e4ac323030348dfb72957bb657bcc8012c8ab4",
+      this.validatorAddress ||
+        "ee21d04f68a4a6cd34d6d19bd35e25ca830d84904f6229cd43bff5a6414ca5e0",
       "--Initiator--",
       "--Initiator--",
       10,

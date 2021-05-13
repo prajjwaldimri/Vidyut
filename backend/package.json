@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --project ./",
-    "dev": "ts-node-dev --respawn --transpile-only index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "random": "ts-node-dev --respawn --transpile-only random.ts"
   },
   "author": "",
   "license": "GPLv3",
