@@ -9,7 +9,7 @@ import { MessageReceiver, MessageSender, MessageType, Peer } from "./comm";
 import { Chain } from "./chain";
 import Wallet from "./wallet";
 
-let chain: Chain = new Chain();
+let chain: Chain;
 let wallet: Wallet;
 
 import Conf from "conf";
@@ -29,7 +29,11 @@ if (config.has("privateKey")) {
 
   let myPeerId = wallet.publicKey;
 
-  // chain.validatorAddress = myPeerId;
+  /*
+   * Can be used to overwrite the validator's peerId
+  chain = new Chain(myPeerId)
+  */
+  chain = new Chain();
 
   try {
     let valueBlocks = await db.get("blocks");
