@@ -7,6 +7,8 @@ import { Chain } from "../chain";
 import { hashBlockBodyContract } from "../util/hasher";
 import Wallet from "../wallet";
 
+import bus from "../eventBus";
+
 export default class MessageSender {
   constructor(
     public peers: { string: Peer } | {},
@@ -43,9 +45,10 @@ export default class MessageSender {
 
   sendReputationInfoToValidator() {
     // Choose a random validator
-    const { address: validatorAddress } = this.chain.validators[
-      Math.floor(Math.random() * this.chain.validators.length)
-    ];
+    const { address: validatorAddress } =
+      this.chain.validators[
+        Math.floor(Math.random() * this.chain.validators.length)
+      ];
 
     // Send information
     this.sendMessageToPeer(
@@ -84,5 +87,6 @@ export default class MessageSender {
   sendSyncToPeer(toId: string) {
     this.sendMessageToPeer(toId, MessageType.SYNC_REQUEST, "");
     console.log(chalk.green(`Sync request sent at ${Date.now()}`));
+    bus.emit("SyncSent");
   }
 }

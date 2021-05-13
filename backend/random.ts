@@ -1,14 +1,18 @@
 import hyperswarm from "hyperswarm";
 import crypto from "crypto";
 import { Socket } from "net";
+import getPort from "get-port";
 
 import Koa from "koa";
 import serve from "koa-static";
+import Router from "@koa/router";
 const app = new Koa();
+const router = new Router();
 
 import { MessageReceiver, MessageSender, MessageType, Peer } from "./comm";
 import { Chain } from "./chain";
 import Wallet from "./wallet";
+import bus from "./eventBus";
 
 let chain: Chain = new Chain();
 let wallet: Wallet;
@@ -71,6 +75,26 @@ if (config.has("privateKey")) {
     console.log("Disconnected");
   });
 
+  const labels = [
+    "Average Sync Time",
+    "Average Block Validation Time",
+    "Average Block Addition Time",
+  ];
+
+  let data = [0, 0, 0];
+
+  let timeStart: number;
+  let syncTimes: number[] = [];
+
+  bus.on("SyncSent", () => {
+    timeStart = Date.now();
+  });
+
+  bus.on("SyncComplete", () => {
+    syncTimes.push(Date.now() - timeStart);
+    data[0] = syncTimes.reduce((a, b) => a + b) / syncTimes.length;
+  });
+
   setInterval(() => {
     const random = Math.random() * (100 - 1) + 1;
 
@@ -105,7 +129,14 @@ if (config.has("privateKey")) {
 
   app.use(serve("public"));
 
-  app.listen(3000);
+  router.get("/data", (ctx, next) => {
+    ctx.body = { labels, data };
+  });
+
+  app.use(router.routes()).use(router.allowedMethods());
+  const port = await getPort();
+  console.log(`Listening on ${port}`);
+  app.listen(port);
 })();
 
 process.on("uncaughtException", (err) => {

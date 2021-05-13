@@ -8,6 +8,7 @@ import { Chain, Validator } from "../chain";
 import db from "../db";
 import { hasher, hashBlockBodyContract, hashValidator } from "../util/hasher";
 import Wallet from "../wallet";
+import bus from "../eventBus";
 
 let seq = 0;
 
@@ -203,6 +204,7 @@ export default class MessageReceiver {
       case MessageType.SYNC_RESPONSE:
         this.chain.replaceChain(JSON.parse(message.data) as Chain);
         console.log(chalk.green(`Sync request completed at ${Date.now()}`));
+        bus.emit("SyncComplete");
         break;
 
       default:
