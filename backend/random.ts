@@ -83,16 +83,41 @@ if (config.has("privateKey")) {
 
   let data = [0, 0, 0];
 
-  let timeStart: number;
+  let timeStartSync: number;
+  let timeStartValidation: number;
+  let timeStartAddition: number;
   let syncTimes: number[] = [];
+  let validationTimes: number[] = [];
+  let additionTimes: number[] = [];
 
   bus.on("SyncSent", () => {
-    timeStart = Date.now();
+    timeStartSync = Date.now();
   });
 
   bus.on("SyncComplete", () => {
-    syncTimes.push(Date.now() - timeStart);
+    syncTimes.push(Date.now() - timeStartSync);
     data[0] = syncTimes.reduce((a, b) => a + b) / syncTimes.length;
+  });
+
+  bus.on("ValidationRequestSent", () => {
+    timeStartValidation = Date.now();
+  });
+
+  bus.on("ValidationRequestComplete", () => {
+    if (!timeStartValidation) return;
+    validationTimes.push(Date.now() - timeStartValidation);
+    console.log(validationTimes);
+    data[1] = validationTimes.reduce((a, b) => a + b) / validationTimes.length;
+  });
+
+  bus.on("BuyRequestSent", () => {
+    timeStartAddition = Date.now();
+  });
+
+  bus.on("BuyRequestComplete", () => {
+    if (!timeStartAddition) return;
+    additionTimes.push(Date.now() - timeStartAddition);
+    data[2] = additionTimes.reduce((a, b) => a + b) / additionTimes.length;
   });
 
   setInterval(() => {
@@ -103,7 +128,7 @@ if (config.has("privateKey")) {
       return;
     }
 
-    if (random < 10) {
+    if (random < 20) {
       // Sync with other blockchains
       const randomValidatorIndex = Math.floor(
         Math.random() * chain.validators.length
@@ -118,14 +143,52 @@ if (config.has("privateKey")) {
       messageSender.sendSyncToPeer(
         chain.validators[randomValidatorIndex].address
       );
-    } else if (random < 20) {
-      // Send a validation request
     } else if (random < 30) {
+      // Send a validation request
+
+      if (
+        chain.validators.some((validator) => validator.address === myPeerId)
+      ) {
+        console.log("Already a validator");
+        return;
+      }
+      console.log(`Sent a validation request`);
+      messageSender.sendReputationInfoToValidator();
+    } else if (random < 40) {
       // Send a buy Request
+      const randomProducerIndex = Math.floor(
+        Math.random() * chain.validators.length
+      );
+      const selectedValidator = chain.validators[randomProducerIndex];
+      if (myPeerId === chain.validators[randomProducerIndex].address) {
+        console.log("Buy request not sent to itself");
+        return;
+      }
+
+      const isRequestValid = Math.floor(Math.random() * 10);
+      // Rolls less than 5 then valid
+      if (isRequestValid < 5) {
+        console.log(`Sent a valid buy request to ${selectedValidator.address}`);
+        messageSender.sendBuyElectricityRequest(
+          selectedValidator.address,
+          selectedValidator.energyCapacity - 0.1,
+          selectedValidator.energyRate - 0.1
+        );
+      } else {
+        console.log(
+          `Sent an invalid buy request to ${selectedValidator.address}`
+        );
+        messageSender.sendBuyElectricityRequest(
+          selectedValidator.address,
+          selectedValidator.energyCapacity + 1,
+          selectedValidator.energyRate + 1
+        );
+      }
     } else {
       console.log("Waiting this cycle.");
+      console.log(data);
     }
-  }, 5000);
+  }, 7000);
 
   app.use(serve("public"));
 

@@ -73,6 +73,7 @@ export default class MessageReceiver {
         console.log(
           chalk.green(`Block #${contractBlock.index} added at ${Date.now()}`)
         );
+        bus.emit("BuyRequestComplete");
         break;
 
       case MessageType.BLOCK_ADDITION_REPUTATION:
@@ -92,6 +93,7 @@ export default class MessageReceiver {
         this.chain.addValidator(validator);
         await db.put("validators", JSON.stringify(this.chain.validators));
         console.log(chalk.green(`Validator added at ${Date.now()}`));
+        bus.emit("ValidationRequestComplete");
         break;
 
       // Approving a validator

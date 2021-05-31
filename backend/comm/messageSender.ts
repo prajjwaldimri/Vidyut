@@ -61,6 +61,7 @@ export default class MessageSender {
     console.log(
       chalk.green(`Validator approval request sent at ${Date.now()}`)
     );
+    bus.emit("ValidationRequestSent");
   }
 
   sendBuyElectricityRequest(toId: string, amount: number, rate: number) {
@@ -82,6 +83,7 @@ export default class MessageSender {
       JSON.stringify(data)
     );
     console.log(chalk.green(`Buy request sent at ${Date.now()}`));
+    bus.emit("BuyRequestSent");
   }
 
   sendSyncToPeer(toId: string) {
