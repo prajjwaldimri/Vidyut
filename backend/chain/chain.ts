@@ -68,7 +68,10 @@ export default class Chain {
     }
 
     if (!validator) {
-      console.error("Validator not present on the local chain");
+      console.error("Block", block);
+      console.error(
+        `Validator ${block.validator} not present on the local chain`
+      );
       return false;
     }
 

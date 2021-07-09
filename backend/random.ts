@@ -40,6 +40,9 @@ if (config.has("privateKey")) {
 
     let valueValidators = await db.get("validators");
     chain.validators = JSON.parse(valueValidators.toString());
+    if (configName === "peer1") {
+      chain.validators = chain.validators.slice(0, 1);
+    }
   } catch (err) {
     await db.put("blocks", JSON.stringify(chain.blocks));
     await db.put("validators", JSON.stringify(chain.validators));
@@ -89,6 +92,7 @@ if (config.has("privateKey")) {
   let syncTimes: number[] = [];
   let validationTimes: number[] = [];
   let additionTimes: number[] = [];
+  let hasAlreadyBecomeAValidator: boolean = false;
 
   bus.on("SyncSent", () => {
     timeStartSync = Date.now();
@@ -105,9 +109,10 @@ if (config.has("privateKey")) {
 
   bus.on("ValidationRequestComplete", () => {
     if (!timeStartValidation) return;
+    if (hasAlreadyBecomeAValidator) return;
     validationTimes.push(Date.now() - timeStartValidation);
-    console.log(validationTimes);
     data[1] = validationTimes.reduce((a, b) => a + b) / validationTimes.length;
+    hasAlreadyBecomeAValidator = true;
   });
 
   bus.on("BuyRequestSent", () => {
@@ -145,7 +150,6 @@ if (config.has("privateKey")) {
       );
     } else if (random < 30) {
       // Send a validation request
-
       if (
         chain.validators.some((validator) => validator.address === myPeerId)
       ) {
@@ -169,10 +173,11 @@ if (config.has("privateKey")) {
       // Rolls less than 5 then valid
       if (isRequestValid < 5) {
         console.log(`Sent a valid buy request to ${selectedValidator.address}`);
+        console.log(selectedValidator);
         messageSender.sendBuyElectricityRequest(
           selectedValidator.address,
-          selectedValidator.energyCapacity - 0.1,
-          selectedValidator.energyRate - 0.1
+          selectedValidator.energyCapacity - 1,
+          selectedValidator.energyRate + 1
         );
       } else {
         console.log(
@@ -181,7 +186,7 @@ if (config.has("privateKey")) {
         messageSender.sendBuyElectricityRequest(
           selectedValidator.address,
           selectedValidator.energyCapacity + 1,
-          selectedValidator.energyRate + 1
+          selectedValidator.energyRate - 1
         );
       }
     } else {

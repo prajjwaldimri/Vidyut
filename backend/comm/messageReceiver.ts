@@ -93,7 +93,8 @@ export default class MessageReceiver {
         this.chain.addValidator(validator);
         await db.put("validators", JSON.stringify(this.chain.validators));
         console.log(chalk.green(`Validator added at ${Date.now()}`));
-        bus.emit("ValidationRequestComplete");
+        if (this.myId === validator.address)
+          bus.emit("ValidationRequestComplete");
         break;
 
       // Approving a validator
@@ -148,17 +149,19 @@ export default class MessageReceiver {
           }
         }
 
-        // Check if we can supply the current requested amount on the requested rate
         if (!currentValidator) {
           console.log("Not a validator");
           return;
         }
 
+        // Check if we can supply the current requested amount on the requested rate
         if (
           currentValidator.energyCapacity <= contract.amount ||
           currentValidator.energyRate > contract.rate
         ) {
-          console.log("Rate or capacity less");
+          console.log(
+            `Rate ${contract.amount} or capacity ${contract.rate} less`
+          );
           return;
         }
 
