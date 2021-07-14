@@ -19,6 +19,7 @@ let wallet: Wallet;
 
 import Conf from "conf";
 import db from "./db";
+import { BlockBodyContract } from "./block/blockBody";
 const configName = process.argv.slice(2)[0];
 const config = new Conf({ configName });
 
@@ -42,6 +43,10 @@ if (config.has("privateKey")) {
     chain.validators = JSON.parse(valueValidators.toString());
     if (configName === "peer1") {
       chain.validators = chain.validators.slice(0, 1);
+      chain.blocks = chain.blocks.slice(0, 1);
+      console.log(
+        `Master peer starting with ${chain.blocks.length} block and ${chain.validators.length} validator`
+      );
     }
   } catch (err) {
     await db.put("blocks", JSON.stringify(chain.blocks));
@@ -87,12 +92,15 @@ if (config.has("privateKey")) {
   let data = [0, 0, 0];
 
   let timeStartSync: number;
-  let timeStartValidation: number;
-  let timeStartAddition: number;
+  let timeStartValidation: number | null;
+  let timeStartAddition: number | null;
   let syncTimes: number[] = [];
   let validationTimes: number[] = [];
   let additionTimes: number[] = [];
   let hasAlreadyBecomeAValidator: boolean = false;
+  let isAlreadyEngagedInTask: boolean = false;
+  let alreadyEngagedCount: number = 0;
+  let isInvalidBuyRequest: boolean = false;
 
   bus.on("SyncSent", () => {
     timeStartSync = Date.now();
@@ -100,7 +108,9 @@ if (config.has("privateKey")) {
 
   bus.on("SyncComplete", () => {
     syncTimes.push(Date.now() - timeStartSync);
-    data[0] = syncTimes.reduce((a, b) => a + b) / syncTimes.length;
+    data[0] = Number.parseFloat(
+      (syncTimes.reduce((a, b) => a + b) / syncTimes.length).toFixed(3)
+    );
   });
 
   bus.on("ValidationRequestSent", () => {
@@ -111,21 +121,66 @@ if (config.has("privateKey")) {
     if (!timeStartValidation) return;
     if (hasAlreadyBecomeAValidator) return;
     validationTimes.push(Date.now() - timeStartValidation);
-    data[1] = validationTimes.reduce((a, b) => a + b) / validationTimes.length;
+    data[1] = Number.parseFloat(
+      (
+        validationTimes.reduce((a, b) => a + b) / validationTimes.length
+      ).toFixed(3)
+    );
     hasAlreadyBecomeAValidator = true;
+    isAlreadyEngagedInTask = false;
+    timeStartValidation = null;
   });
 
   bus.on("BuyRequestSent", () => {
+    if (isInvalidBuyRequest) {
+      isInvalidBuyRequest = false;
+      return;
+    }
     timeStartAddition = Date.now();
+    isAlreadyEngagedInTask = true;
   });
 
-  bus.on("BuyRequestComplete", () => {
-    if (!timeStartAddition) return;
+  bus.on("BuyRequestInvalid", () => {
+    isAlreadyEngagedInTask = false;
+    timeStartAddition = null;
+    isInvalidBuyRequest = false;
+  });
+
+  bus.on("BuyRequestComplete", (contract: BlockBodyContract) => {
+    if (!timeStartAddition) {
+      isInvalidBuyRequest = false;
+      return;
+    }
+
+    if (contract && contract.consumer !== wallet.publicKey) {
+      isInvalidBuyRequest = false;
+      timeStartAddition = null;
+      isAlreadyEngagedInTask = false;
+      return;
+    }
+
     additionTimes.push(Date.now() - timeStartAddition);
-    data[2] = additionTimes.reduce((a, b) => a + b) / additionTimes.length;
+    data[2] = Number.parseFloat(
+      (additionTimes.reduce((a, b) => a + b) / additionTimes.length).toFixed(3)
+    );
+    timeStartAddition = null;
+    isAlreadyEngagedInTask = false;
   });
 
   setInterval(() => {
+    console.log(data);
+    if (isAlreadyEngagedInTask) {
+      alreadyEngagedCount += 1;
+      console.log("Already engaged in other task");
+      if (alreadyEngagedCount > 10) {
+        isAlreadyEngagedInTask = false;
+        timeStartAddition = null;
+        isInvalidBuyRequest = false;
+        alreadyEngagedCount = 0;
+      }
+      return;
+    }
+
     const random = Math.random() * (100 - 1) + 1;
 
     if (chain.validators.length < 1) {
@@ -133,7 +188,7 @@ if (config.has("privateKey")) {
       return;
     }
 
-    if (random < 20) {
+    if (random < 50) {
       // Sync with other blockchains
       const randomValidatorIndex = Math.floor(
         Math.random() * chain.validators.length
@@ -148,7 +203,7 @@ if (config.has("privateKey")) {
       messageSender.sendSyncToPeer(
         chain.validators[randomValidatorIndex].address
       );
-    } else if (random < 30) {
+    } else if (random < 75) {
       // Send a validation request
       if (
         chain.validators.some((validator) => validator.address === myPeerId)
@@ -158,7 +213,7 @@ if (config.has("privateKey")) {
       }
       console.log(`Sent a validation request`);
       messageSender.sendReputationInfoToValidator();
-    } else if (random < 40) {
+    } else if (random < 100 && chain.validators.length > 1) {
       // Send a buy Request
       const randomProducerIndex = Math.floor(
         Math.random() * chain.validators.length
@@ -172,14 +227,15 @@ if (config.has("privateKey")) {
       const isRequestValid = Math.floor(Math.random() * 10);
       // Rolls less than 5 then valid
       if (isRequestValid < 5) {
+        isInvalidBuyRequest = false;
         console.log(`Sent a valid buy request to ${selectedValidator.address}`);
-        console.log(selectedValidator);
         messageSender.sendBuyElectricityRequest(
           selectedValidator.address,
           selectedValidator.energyCapacity - 1,
           selectedValidator.energyRate + 1
         );
       } else {
+        isInvalidBuyRequest = true;
         console.log(
           `Sent an invalid buy request to ${selectedValidator.address}`
         );
@@ -191,9 +247,8 @@ if (config.has("privateKey")) {
       }
     } else {
       console.log("Waiting this cycle.");
-      console.log(data);
     }
-  }, 7000);
+  }, 8000);
 
   app.use(serve("public"));
 
@@ -208,5 +263,5 @@ if (config.has("privateKey")) {
 })();
 
 process.on("uncaughtException", (err) => {
-  console.log("Uncaught Exception", err.stack);
+  console.log("Uncaught Exception", err);
 });

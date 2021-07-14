@@ -58,7 +58,6 @@ export default class Chain {
 
   isBlockValid(block: Block): boolean {
     // Check if the validator is present on the chain or not
-    console.log(block);
     let validator: Validator | undefined = undefined;
     for (const currentValidator of this.validators) {
       if (currentValidator.address === block.validator) {
@@ -126,10 +125,17 @@ export default class Chain {
     // Check if the validator has not been assigned to previous (N/2) + 1 blocks
     let numberOfBlocksToGoBack = Math.floor(this.validators.length / 2 + 1);
 
-    for (let i = this.index; i > numberOfBlocksToGoBack; i--) {
+    for (
+      let i = this.index;
+      i > Math.max(0, this.index - numberOfBlocksToGoBack);
+      i--
+    ) {
       if (this.blocks[i].validator === block.validator) {
+        console.log(
+          `Blocks went back = ${numberOfBlocksToGoBack}, Validators = ${this.validators.length}`
+        );
         console.error(
-          "Validator has already validated a block which is not (N/2)+1 blocks before"
+          `Validator has already validated a block which is not (N/2)+1 blocks before at block ${i}`
         );
         return false;
       }
@@ -196,10 +202,17 @@ export default class Chain {
     // Check if the validator has not been assigned to previous (N/2) + 1 blocks
     let numberOfBlocksToGoBack = Math.floor(this.validators.length / 2 + 1);
 
-    for (let i = this.index; i > numberOfBlocksToGoBack; i--) {
+    for (
+      let i = this.index;
+      i > Math.max(0, this.index - numberOfBlocksToGoBack);
+      i--
+    ) {
       if (this.blocks[i].validator === block.validator) {
+        console.log(
+          `Blocks went back = ${numberOfBlocksToGoBack}, Validators = ${this.validators.length}`
+        );
         console.error(
-          "Validator has already validated a block which is not (N/2)+1 blocks before"
+          `Validator has already validated a block which is not (N/2)+1 blocks before at block ${i}`
         );
         return null;
       }
@@ -213,6 +226,7 @@ export default class Chain {
 
   addBlock(block: Block) {
     // Check if the current block has index greater than previous block on the local chain
+
     if (this.index >= block.index) {
       throw new Error(
         "The last block on the chain has an higher or equal index number than the block to be added"

@@ -41,40 +41,59 @@ export default class MessageReceiver {
         break;
 
       case MessageType.BLOCK_ADDITION_CONTRACT_UNVALIDATED:
-        data = JSON.parse(message.data);
-        const validatedBlock = this.chain.validateBlock(this.wallet, data);
+        try {
+          data = JSON.parse(message.data);
+          const validatedBlock = this.chain.validateBlock(this.wallet, data);
 
-        if (validatedBlock) {
-          this.messageSender.broadcast(
-            MessageType.BLOCK_ADDITION_CONTRACT,
-            JSON.stringify(validatedBlock)
-          );
-          this.chain.addBlock(validatedBlock);
-          await db.put("blocks", JSON.stringify(this.chain.blocks));
-          console.log(
-            chalk.green(
-              `Contract block #${
-                validatedBlock.index
-              } validated at ${Date.now()}`
+          if (validatedBlock) {
+            // Don't validate its own block
+            if (
+              validatedBlock.body?.contract?.consumer === this.wallet.publicKey
             )
-          );
-        } else {
-          console.log(
-            chalk.red(`Contract Block not validated at ${Date.now()}`)
-          );
+              return;
+            this.messageSender.broadcast(
+              MessageType.BLOCK_ADDITION_CONTRACT,
+              JSON.stringify(validatedBlock)
+            );
+            this.chain.addBlock(validatedBlock);
+            await db.put("blocks", JSON.stringify(this.chain.blocks));
+            console.log(
+              chalk.magentaBright(
+                `Contract block #${
+                  validatedBlock.index
+                } validated at ${Date.now()}`
+              )
+            );
+          } else {
+            console.log(
+              chalk.red(`Contract Block not validated at ${Date.now()}`)
+            );
+          }
+        } catch (e) {
+          if (data && data.body.contract.consumer === this.wallet.publicKey)
+            bus.emit("BuyRequestInvalid");
+        } finally {
+          break;
         }
 
-        break;
-
       case MessageType.BLOCK_ADDITION_CONTRACT:
-        const contractBlock = JSON.parse(message.data) as Block;
-        this.chain.addBlock(contractBlock);
-        await db.put("blocks", JSON.stringify(this.chain.blocks));
-        console.log(
-          chalk.green(`Block #${contractBlock.index} added at ${Date.now()}`)
-        );
-        bus.emit("BuyRequestComplete");
-        break;
+        let contractBlock: Block | null = null;
+        try {
+          contractBlock = JSON.parse(message.data) as Block;
+          this.chain.addBlock(contractBlock);
+          await db.put("blocks", JSON.stringify(this.chain.blocks));
+          console.log(
+            chalk.magentaBright(
+              `Block #${contractBlock.index} added at ${Date.now()}`
+            )
+          );
+          bus.emit("BuyRequestComplete", contractBlock.body.contract);
+        } catch (e) {
+          if (contractBlock && contractBlock.creator === this.wallet.publicKey)
+            bus.emit("BuyRequestInvalid");
+        } finally {
+          break;
+        }
 
       case MessageType.BLOCK_ADDITION_REPUTATION:
         const reputationBlock = JSON.parse(message.data) as Block;
@@ -92,7 +111,13 @@ export default class MessageReceiver {
         const validator = JSON.parse(message.data) as Validator;
         this.chain.addValidator(validator);
         await db.put("validators", JSON.stringify(this.chain.validators));
-        console.log(chalk.green(`Validator added at ${Date.now()}`));
+        console.log(
+          chalk.yellowBright(
+            `Validator added at ${Date.now()} with ${
+              validator.reputation
+            } reputation`
+          )
+        );
         if (this.myId === validator.address)
           bus.emit("ValidationRequestComplete");
         break;
@@ -110,7 +135,7 @@ export default class MessageReceiver {
               message.from,
               this.wallet.publicKey,
               "",
-              0,
+              1,
               Math.floor(Math.random() * 20 * 100) / 100,
               Math.floor(Math.random() * 10 * 100) / 100,
               ""
@@ -126,7 +151,9 @@ export default class MessageReceiver {
               MessageType.VALIDATOR_ADDITION,
               JSON.stringify(validator)
             );
-            console.log(chalk.green(`Validator approved at ${Date.now()}`));
+            console.log(
+              chalk.yellowBright(`Validator approved at ${Date.now()}`)
+            );
           } else {
             this.messageSender.sendMessageToPeer(
               message.from,
@@ -134,7 +161,7 @@ export default class MessageReceiver {
               "Rejected"
             );
           }
-        }, Math.floor(Math.random() * 1000));
+        }, Math.floor(Math.random() * 400));
         break;
 
       case MessageType.BUY_ELECTRICITY:
@@ -193,7 +220,9 @@ export default class MessageReceiver {
           )
         );
         console.log(
-          chalk.green(`Contract block generated by producer at ${Date.now()}`)
+          chalk.magentaBright(
+            `Contract block generated by producer at ${Date.now()}`
+          )
         );
         break;
 
@@ -208,7 +237,9 @@ export default class MessageReceiver {
 
       case MessageType.SYNC_RESPONSE:
         this.chain.replaceChain(JSON.parse(message.data) as Chain);
-        console.log(chalk.green(`Sync request completed at ${Date.now()}`));
+        console.log(
+          chalk.blueBright(`Sync request completed at ${Date.now()}`)
+        );
         bus.emit("SyncComplete");
         break;
 

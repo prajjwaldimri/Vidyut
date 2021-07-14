@@ -59,7 +59,7 @@ export default class MessageSender {
       })
     );
     console.log(
-      chalk.green(`Validator approval request sent at ${Date.now()}`)
+      chalk.yellowBright(`Validator approval request sent at ${Date.now()}`)
     );
     bus.emit("ValidationRequestSent");
   }
@@ -82,13 +82,13 @@ export default class MessageSender {
       MessageType.BUY_ELECTRICITY,
       JSON.stringify(data)
     );
-    console.log(chalk.green(`Buy request sent at ${Date.now()}`));
+    console.log(chalk.magentaBright(`Buy request sent at ${Date.now()}`));
     bus.emit("BuyRequestSent");
   }
 
   sendSyncToPeer(toId: string) {
     this.sendMessageToPeer(toId, MessageType.SYNC_REQUEST, "");
-    console.log(chalk.green(`Sync request sent at ${Date.now()}`));
+    console.log(chalk.blueBright(`Sync request sent at ${Date.now()}`));
     bus.emit("SyncSent");
   }
 }
