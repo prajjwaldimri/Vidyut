@@ -51,6 +51,7 @@ export default class MessageReceiver {
               validatedBlock.body?.contract?.consumer === this.wallet.publicKey
             )
               return;
+
             this.messageSender.broadcast(
               MessageType.BLOCK_ADDITION_CONTRACT,
               JSON.stringify(validatedBlock)
